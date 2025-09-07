@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservation System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; }
+        .container { max-width: 500px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);}
+        h1 { text-align: center; color: #333; }
+        .menu { margin: 30px 0; }
+        .menu a { display: block; margin: 12px 0; padding: 12px; background: #007bff; color: #fff; text-decoration: none; border-radius: 4px; text-align: center; font-size: 18px;}
+        .menu a:hover { background: #0056b3; }
+        .footer { text-align: center; color: #888; margin-top: 30px; font-size: 14px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reservation System</h1>
+        <div class="menu">
+            <form id="makeReservationForm" method="POST" action="/api/reservations" style="margin-bottom:20px;">
+                <h2 style="text-align:center; color:#333;">Make a Reservation</h2>
+                <input type="text" name="name" placeholder="Name" required style="width:100%;margin-bottom:10px;padding:10px;">
+                <input type="date" name="date" required style="width:100%;margin-bottom:10px;padding:10px;">
+                <input type="number" name="numberOfGuests" placeholder="Number of Guests" min="1" required style="width:100%;margin-bottom:10px;padding:10px;">
+                <button type="submit" style="width:100%;padding:12px;background:#007bff;color:#fff;border:none;border-radius:4px;font-size:18px;">Submit</button>
+            </form>
+            <div id="reservationMessage" style="text-align:center;color:green;font-size:16px;margin-bottom:10px;"></div>
+            <button onclick="viewReservations()" style="width:100%;margin-bottom:12px;padding:12px;background:#007bff;color:#fff;border:none;border-radius:4px;font-size:18px;">View All Reservations</button>
+            <form id="cancelReservationForm" method="POST" action="/api/cancel" style="margin-bottom:12px;">
+                <h2 style="text-align:center; color:#333;">Cancel a Reservation</h2>
+                <input type="number" name="id" placeholder="Reservation ID" min="1" required style="width:100%;margin-bottom:10px;padding:10px;">
+                <button type="submit" style="width:100%;padding:12px;background:#007bff;color:#fff;border:none;border-radius:4px;font-size:18px;">Cancel</button>
+            </form>
+            <div id="reservationsList" style="margin-top:20px;"></div>
+        </div>
+        <script>
+        let reservations = [];
+        document.getElementById('makeReservationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            // Get user input
+            const name = form.name.value;
+            const date = form.date.value;
+            const numberOfGuests = form.numberOfGuests.value;
+            // Add to reservations array
+            reservations.push({
+                id: reservations.length + 1,
+                name,
+                date,
+                numberOfGuests
+            });
+            document.getElementById('reservationMessage').textContent = 'Reservation completed';
+            setTimeout(() => {
+                document.getElementById('reservationMessage').textContent = '';
+            }, 2000);
+            form.reset();
+            /*
+            // Uncomment below to use with backend
+            const data = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: data
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('reservationMessage').textContent = 'Reservation completed';
+                    form.reset();
+                } else {
+                    document.getElementById('reservationMessage').textContent = 'Reservation failed';
+                }
+            })
+            .catch(() => {
+                document.getElementById('reservationMessage').textContent = 'Reservation failed';
+            });
+            */
+        });
+        document.getElementById('cancelReservationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const id = parseInt(form.id.value);
+            const initialLength = reservations.length;
+            reservations = reservations.filter(r => r.id !== id);
+            if (reservations.length < initialLength) {
+                document.getElementById('reservationMessage').textContent = 'Reservation canceled';
+            } else {
+                document.getElementById('reservationMessage').textContent = 'Reservation not found';
+            }
+            setTimeout(() => {
+                document.getElementById('reservationMessage').textContent = '';
+            }, 2000);
+            form.reset();
+            viewReservations();
+        });
+        function viewReservations() {
+            // Show user-added reservations
+            let html = '<h2 style="text-align:center; color:#333;">Reservations</h2>';
+            if (reservations.length === 0) {
+                html += '<p>No reservations found.</p>';
+            } else {
+                html += '<ul style="padding-left:0;list-style:none;">';
+                reservations.forEach(r => {
+                    html += `<li style='margin-bottom:8px;padding:8px;background:#eee;border-radius:4px;'>ID: ${r.id} - ${r.name} - ${r.date} - Guests: ${r.numberOfGuests}</li>`;
+                });
+                html += '</ul>';
+            }
+            document.getElementById('reservationsList').innerHTML = html;
+            /*
+            // Uncomment below to use with backend
+            fetch('/api/reservations')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '<h2 style="text-align:center; color:#333;">Reservations</h2>';
+                    if (data.length === 0) {
+                        html += '<p>No reservations found.</p>';
+                    } else {
+                        html += '<ul style="padding-left:0;list-style:none;">';
+                        data.forEach(r => {
+                            html += `<li style='margin-bottom:8px;padding:8px;background:#eee;border-radius:4px;'>ID: ${r.id} - ${r.name} - ${r.date} - Guests: ${r.numberOfGuests}</li>`;
+                        });
+                        html += '</ul>';
+                    }
+                    document.getElementById('reservationsList').innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById('reservationsList').innerHTML = '<p>Error loading reservations.</p>';
+                });
+            */
+        }
+        </script>
+        <div class="footer">
+            &copy; 2025 Reservation System
+        </div>
+    </div>
+</body>
+</html>
